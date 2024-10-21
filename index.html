@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kehillah Robotics Club Attendance Tracker</title>
+  <style>
+    /* GitHub-inspired dark theme with green-blue mix */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #0d1117;
+      color: #c9d1d9;
+    }
+
+    /* Navigation bar with green-blue-grey mix */
+    nav {
+      background-color: #161b22;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Navigation links with hover and zoom effect */
+    nav a {
+      color: #58a6ff;
+      margin: 0 20px;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 8px;
+      background-color: #21262d;
+      display: inline-block;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+
+    nav a:hover {
+      background-color: #238636; /* Changes to green on hover */
+      transform: scale(1.05); /* Zoom effect */
+    }
+
+    .logo {
+      font-size: 1.5em;
+      color: #58a6ff;
+      font-weight: bold;
+    }
+
+    /* Main container */
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #161b22;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    h1, h2 {
+      color: #58a6ff;
+    }
+
+    /* RFID Logs table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #21262d;
+      color: #c9d1d9;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border: 1px solid #30363d;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #30363d;
+      color: #f0f6fc;
+      font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+      background-color: #161b22;
+    }
+
+    tr:hover {
+      background-color: #32383e;
+    }
+
+    /* Button styling */
+    button {
+      background-color: #2d72b8;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      margin: 5px 0;
+    }
+
+    button:hover {
+      background-color: #3182ce;
+      transform: scale(1.05); /* Zoom effect */
+    }
+
+    /* Footer as a banner */
+    .footer-banner {
+      background-color: #161b22;
+      padding: 15px 0;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+      text-align: center;
+      color: #8b949e;
+    }
+
+    .footer-banner p {
+      margin: 0;
+      font-size: 1.2em;
+    }
+
+    /* General Styling for Forms */
+    .btn-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">Kehillah Robotics Club</div>
+    <div>
+      <a href="/">Home</a>
+      <a href="/profiles">Profiles</a>
+      <a href="/exportData">Export Data</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1>Kehillah Robotics Club Attendance Tracker</h1>
+
+    <h2>Attendance Logs</h2>
+    <table id="rfidTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>UID</th>
+          <th>Last Read</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- RFID logs will be dynamically inserted here -->
+      </tbody>
+    </table>
+
+    <!-- Export buttons -->
+    <div class="btn-container">
+      <a href="/exportData?format=json"><button class="export-btn">Export as JSON</button></a>
+      <a href="/exportData?format=csv"><button class="export-btn">Export as CSV</button></a>
+    </div>
+  </div>
+
+  <!-- Footer Banner -->
+  <footer class="footer-banner">
+    <p>Made by Jonah Seidman</p>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js"></script>
+
+  <script>
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Function to fetch RFID logs
+    function fetchRFIDLogs() {
+      const logsRef = database.ref('/rfid_logs');
+      logsRef.once('value', (snapshot) => {
+        const logs = snapshot.val();
+        const table = document.getElementById('rfidTable').getElementsByTagName('tbody')[0];
+        table.innerHTML = '';  // Clear existing rows
+
+        for (const uid in logs) {
+          const log = logs[uid];
+          const row = document.createElement('tr');
+          const name = log.name || '<em>Not Assigned</em>';
+          const lastRead = new Date(log.timestamp * 1000).toLocaleString();
+
+          row.innerHTML = `
+            <td>${name}</td>
+            <td>${uid}</td>
+            <td>${lastRead}</td>
+            <td><button onclick="assignName('${uid}')">Assign/Update Name</button></td>
+          `;
+          table.appendChild(row);
+        }
+      });
+    }
+
+    // Function to assign or update a name
+    function assignName(uid) {
+      const name = prompt('Enter name for UID ' + uid);
+      if (name) {
+        const updates = {};
+        updates['/rfid_logs/' + uid + '/name'] = name;
+        updates['/rfid_logs/' + uid + '/timestamp'] = Math.floor(Date.now() / 1000);
+        database.ref().update(updates)
+          .then(() => {
+            alert('Name assigned successfully');
+            fetchRFIDLogs();
+          })
+          .catch((error) => {
+            console.error('Error updating name:', error);
+            alert('Failed to update name');
+          });
+      }
+    }
+
+    // Fetch data initially
+    window.onload = () => {
+      fetchRFIDLogs();
+    };
+  </script>
+</body>
+</html>
