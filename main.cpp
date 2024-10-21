@@ -8,20 +8,23 @@
 #include <time.h>
 
 // Replace with your network credentials
-const char* ssid = "xxx";
-const char* password = "xxx";
+const char* ssid = "xx";
+const char* password = "xx";
 
 // Replace with your Firebase project credentials
-#define FIREBASE_API_KEY "xxx"
+#define FIREBASE_API_KEY "xx"
 #define FIREBASE_PROJECT_ID "esp32rfidproject"
-#define FIREBASE_DATABASE_URL "xxx/" // Ensure trailing slash
+#define FIREBASE_DATABASE_URL "xx/" // Ensure trailing slash
 
 // Initialize FirebaseClient object
 FirebaseClient firebaseClient; // m 
 
 // RFID setup
-#define RST_PIN 22
-#define SS_PIN 21
+#define RST_PIN 22  // RST connected to GPIO 22
+#define SS_PIN 21   // SS (SDA) connected to GPIO 21
+#define SCK_PIN 18  // SCK connected to GPIO 18
+#define MOSI_PIN 23 // MOSI connected to GPIO 23
+#define MISO_PIN 19 // MISO connected to GPIO 19
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 
 // Web server setup
@@ -112,6 +115,9 @@ void loop() {
     uidString.toUpperCase();
     Serial.print("Card UID: ");
     Serial.println(uidString);
+
+    // Debug for RFID RC522 sensor
+    Serial.println("RFID RC522 debug: Card detected and reading processed.");
 
     // Get current time
     time_t now = time(nullptr);
