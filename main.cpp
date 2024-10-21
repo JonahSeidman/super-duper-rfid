@@ -8,13 +8,13 @@
 #include <time.h>
 
 // Replace with your network credentials
-const char* ssid = "homeland-up";
-const char* password = "jonahkira";
+const char* ssid = "xxx";
+const char* password = "xxx";
 
 // Replace with your Firebase project credentials
-#define FIREBASE_API_KEY "AIzaSyAEnK7meAJm842Xa3FAdEk0ffejLzBf_Kg"
+#define FIREBASE_API_KEY "xxx"
 #define FIREBASE_PROJECT_ID "esp32rfidproject"
-#define FIREBASE_DATABASE_URL "https://esp32rfidproject-default-rtdb.firebaseio.comß/" // Ensure trailing slash
+#define FIREBASE_DATABASE_URL "xxx/" // Ensure trailing slash
 
 // Initialize FirebaseClient object
 FirebaseClient firebaseClient; // m 
